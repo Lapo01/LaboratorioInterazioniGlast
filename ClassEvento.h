@@ -19,8 +19,7 @@ public:
     std::vector<int> InitialStrip;
     std::vector<int> ClusterLayer;
     std::vector<double> ClusterPosizione;
-    int BuonCluster;
-
+    int Flags[2] = {0,0};
 };
 
 
@@ -57,7 +56,7 @@ double StripCoordinate(int Strip){
         return coordinate;};
 
 
-void TrackXZ(Evento e){
+void TrackXZ(Evento e, TGraph *Graph){
 
 std::map<int, double> Zmap;
 Zmap.insert(std::make_pair(10, 3.1));
@@ -71,21 +70,21 @@ Zmap.insert(std::make_pair(22,13.3));
 Zmap.insert(std::make_pair(23,24.6));
 Zmap.insert(std::make_pair(24,27.8));
 
-        int NPoints=0;
+
         double xpos;
         double zpos;
-        TGraph *Graph = new TGraph();
+        double error;
+        double errorz = 0.1; //cm
         Graph->SetTitle("Track XZ; X [cm]; Z [cm]");
-            for (int i = 0; i<e.NHit; i++){
-                if(e.Layer[i]<15){
-                xpos = StripCoordinate(e.Strip[i]);
-                zpos = Zmap[e.Layer[i]];
-                NPoints++;
+            for (int i = 0; i<e.ClusterLayer.size(); i++){
+                if(e.ClusterLayer[i]<15){
+                xpos = e.ClusterPosizione[i];
+                zpos = Zmap[e.ClusterLayer[i]];
+                error = Error(e.InitialStrip[i], e.ClusterDimension[i]);
+
                 Graph->SetPoint(Graph->GetN(),xpos, zpos);
                 }
             }   
-        TCanvas *c1 = new TCanvas();
-        Graph->Draw("A*");
 };
 
 
@@ -98,8 +97,7 @@ Zmap.insert(std::make_pair(24,27.8));
 
 
 
-
-void TrackYZ(Evento e){
+void TrackYZ(Evento e, TGraph *Graph){
 
 std::map<int, double> Zmap;
 Zmap.insert(std::make_pair(10, 3.1));
@@ -113,21 +111,18 @@ Zmap.insert(std::make_pair(22,13.3));
 Zmap.insert(std::make_pair(23,24.6));
 Zmap.insert(std::make_pair(24,27.8));
 
-    int NPoints=0;
         double ypos;
         double zpos;
-        TGraph *Graph = new TGraph();
+
         Graph->SetTitle("Track YZ; Y [cm]; Z [cm]");
-        for (int i = 0; i<e.NHit; i++){
-            if(e.Layer[i]>15){
-            ypos = StripCoordinate(e.Strip[i]);
-            zpos = Zmap[e.Layer[i]];
-            NPoints++;
+        for (int i = 0; i<e.ClusterLayer.size(); i++){
+            if(e.ClusterLayer[i]>15){
+            ypos = e.ClusterPosizione[i];
+            zpos = Zmap[e.ClusterLayer[i]];
             Graph->SetPoint(Graph->GetN(),ypos, zpos);
             }
         }   
-        TCanvas *c1 = new TCanvas();
-        Graph->Draw("A*");
+
 };
 
 
@@ -211,9 +206,12 @@ void UniTestCluster(Evento e){
 
 
 
-void UniTestBuonCluster(Evento e){
-
+double Error(int StripIn, int Dimension){
+    int StripFin = StripIn + Dimension;
+    double error = (StripFin-StripIn)/(sqrt(12.);
+    return error; 
 }
+
 
 
 

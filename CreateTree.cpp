@@ -98,7 +98,7 @@ std::vector<std::vector<int>> MutedVector = {MutedStripX0,MutedStripX1,MutedStri
 std::map<int, std::vector<int>> MapDeiVettoriMutati;
 for (int i = 0; i<MutedVector.size(); i++) {
     MapDeiVettoriMutati.insert(std::make_pair(Xx[i],MutedVector[i]));
-    cout<<MutedVector[i].size()<<endl;
+
     
 }
 
@@ -112,12 +112,12 @@ int a;
 std::ifstream myfile_in(fileinput);
 for(auto x:Xx){
 ciclo =0;
-cout<<x<<endl;
+
 
 TH1F *h = new TH1F("hist", "Hit Distribution", 1536, 0, 1536);
-//TCanvas *c1 = new TCanvas();
+
     if (myfile_in.is_open())
-    {                cout<<"Ho aperto il file"<<endl;
+    {               
         while(getline(myfile_in, line))
         {
             if(ciclo>0){ //questo esclude la prima linea del file, che è da scartare.
@@ -130,8 +130,7 @@ TH1F *h = new TH1F("hist", "Hit Distribution", 1536, 0, 1536);
             };
             
             NHit = stoi(words[1]);
-            //cout<<NHit<<endl;
-            //std::cout<<NHit<<'\n';
+        
             for(int i = 0; i<NHit; i++)
             {
                 if(mapping[words[i+2+4*i]] ==x){
@@ -150,11 +149,6 @@ TH1F *h = new TH1F("hist", "Hit Distribution", 1536, 0, 1536);
         }
 
     }
-
-
-   //if(x == X0){
-
-   //h->Draw();//}
    
     for(int i= 1; i<1537; i++){
           a= h->GetBinContent(i);
@@ -171,7 +165,7 @@ TH1F *h = new TH1F("hist", "Hit Distribution", 1536, 0, 1536);
 
     myfile_in.clear();
     myfile_in.seekg(0);
-
+    delete h;
 }
 
     for(auto x:MapDeiVettoriMutati[12]){
@@ -192,7 +186,7 @@ ciclo = 0;
 
 
 
-
+int NCluster =0;
 
 
 
@@ -229,7 +223,8 @@ eventoprova.ClusterDimension.clear();
 eventoprova.InitialStrip.clear();
 ImStuffUwU.clear();
 OS.clear();
-eventoprova.BuonCluster = 1;
+eventoprova.Flags[0] = 1;
+eventoprova.Flags[1] = 1;
 eventoprova.ClusterPosizione.clear();
 
 
@@ -316,17 +311,17 @@ check = 0;
             eventoprova.ClusterPosizione.push_back((StripCoordinate(OS[j])+StripCoordinate(OS[j-LengthCluster+1]))/2.);
             for(auto y:MapDeiVettoriMutati[x]){
                 if (OS[j-LengthCluster+1]-y ==1){
-                    eventoprova.BuonCluster = 0;
+                    eventoprova.Flags[0] = 0;
                     
                 
                 }
                 if (y-OS[j] ==1){
-                    eventoprova.BuonCluster = 0;
+                    eventoprova.Flags[0] = 0;
                     
                 }           
                 
             }
-            
+            NCluster++;
             LengthCluster = 1;
         }
         else {
@@ -334,15 +329,21 @@ check = 0;
             eventoprova.InitialStrip.push_back(OS[j]);
             eventoprova.ClusterLayer.push_back(x);
             eventoprova.ClusterPosizione.push_back(StripCoordinate(OS[j]));
+            NCluster++;
             for(auto y:MapDeiVettoriMutati[x]){
                 if (abs(y-OS[j]) ==1){
-                    eventoprova.BuonCluster = 0;
+                    eventoprova.Flags[0] = 0;
                     
                 }  
             }
             check++;
         }
+        
     }
+
+if(NCluster > 1){
+eventoprova.Flags[1] = 0;
+}
 
 
 
@@ -352,6 +353,8 @@ OS.clear();
 StripLayer.clear();
 ImStuffUwU.clear();
 NumeroStripLayer = 0;
+NCluster = 0;
+
 }
 
 
