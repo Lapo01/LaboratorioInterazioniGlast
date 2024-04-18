@@ -53,49 +53,64 @@ TF1 *line = new TF1("line", "[0] + [1]*x");
 	int entries = tree->GetEntries();
 	
 
-
+double m =0;
+std::vector<double> mx;
+std::vector<double> my;
 for(int i= 0; i< entries; i++){
     tree->GetEntry(i);
     if((evento.Flags[0] == 1)&(evento.Flags[1] == 1)){
     
         if(i == 3){
-
-        TGraphErrors *YZ = new TGraphErrors();
-        TGraphErrors *XZ = new TGraphErrors();
+                line->SetParameters(0, 1);
+            TGraphErrors *YZ = new TGraphErrors();
+            TGraphErrors *XZ = new TGraphErrors();
+            m = 0;
+            cout<<m<<endl;
+            TrackYZ(evento, YZ, m);
+            TrackXZ(evento, XZ, m);
+            YZ->Fit("line");
+           
+            m = line->GetParameter(1);
+                        cout<<"valore di m iniziale per yz è "<<m<<endl;
+            delete YZ;
+            for(int j =0; j<5; j++){
+                TGraphErrors *YZ = new TGraphErrors();
+                TrackYZ(evento, YZ, m);
+                YZ->Fit("line","q");
+                m = line->GetParameter(1);
+                delete YZ;
         
-        TrackYZ(evento, YZ);
-        TrackXZ(evento, XZ);
-        YZ->Fit("line","q");
-        XZ->Fit("line","q");
+            }
+            my.push_back(m);
+            
+            XZ->Fit("line","q");
+            m = line->GetParameter(1);
+                        cout<<"valore di m iniziale per xz è "<<m<<endl;
+            delete XZ;
+            for(int j =0; j<5;j++){
+                TGraphErrors *XZ = new TGraphErrors();
+                TrackXZ(evento, XZ, m);
+                XZ->Fit("line","q");
+                m = line->GetParameter(1);
+                delete XZ;
         
-        cout<<line->GetNDF()<<endl;
-        cout<<line->GetChisquare()<<endl;
-        cout<<line->GetProb()<<endl;
+            }
+            mx.push_back(m);
+            cout<<"Valore di convergenza per xz è: "<<mx[0]<<endl;
+            cout<<"Valore di convergenza per yz è: "<<my[0]<<endl;
+            
+            
+            
+       
         }
     }
 
 
 
 
+
+
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
