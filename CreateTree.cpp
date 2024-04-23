@@ -97,6 +97,15 @@ int a;
 
 std::ifstream myfile_in(fileinput);
 
+/*
+std::vector<TH1D*> ResiduiZ;
+for (int i = 0; i < 10; ++i) 
+{
+	TH1D* istogrammaZ = new TH1D(Form("residuiZ_%d", stringa[i]), TitleZ, 2001, -2, 2);
+	ResiduiZ.push_back(istogrammaZ);
+}
+*/
+
 for(auto x:Xx){//trovare strip mutate
 ciclo =0;
 
@@ -197,6 +206,7 @@ ImStuffUwU.clear();
 OS.clear();
 eventoprova.Flags[0] = 1;
 eventoprova.Flags[1] = 1;
+eventoprova.Flags[2] = 1;
 eventoprova.ClusterPosizione.clear();
 for(auto x:Xx)
 {
@@ -264,6 +274,7 @@ for(auto x: Xx) //creare clusters
 			eventoprova.InitialStrip.push_back(OS[j-LengthCluster+1]);
 			eventoprova.ClusterLayer.push_back(x);
 			eventoprova.ClusterPosizione.push_back((StripCoordinate(OS[j])+StripCoordinate(OS[j-LengthCluster+1]))/2.);
+			eventoprova.Flags[2] =0;
 			for(auto y:MapDeiVettoriMutati[x])
 			{
 				if (OS[j-LengthCluster+1]-y ==1)
@@ -276,15 +287,16 @@ for(auto x: Xx) //creare clusters
 				}		   	
 			}
 			NCluster++;
-			LengthCluster = 1;
+			LengthCluster = 1; //reset
 		}
-		else 
+		else //se ha dimensione 1
 		{
 			eventoprova.ClusterDimension.push_back(LengthCluster);
 			eventoprova.InitialStrip.push_back(OS[j]);
 			eventoprova.ClusterLayer.push_back(x);
 			eventoprova.ClusterPosizione.push_back(StripCoordinate(OS[j]));
 			NCluster++;
+
 			for(auto y:MapDeiVettoriMutati[x])
 			{
 				if (abs(y-OS[j]) ==1)

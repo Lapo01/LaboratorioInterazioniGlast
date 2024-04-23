@@ -50,6 +50,20 @@ TH1F *histChi3Y = new TH1F("histChi3Y", "Chi2, piano Y NDF = 3", 500, 0, 100);
 
 int N=0;
 
+TString TitleZ;
+std::vector<TH1D*> ResiduiZ;
+for (int i = 0; i < 10; ++i) 
+{
+	TitleZ ="Residui Layer" + mapping[stringa[i]]+"asse Z con shift";
+	TH1D* istogrammaZ = new TH1D(Form("residuiZ_%d", stringa[i]), TitleZ, 2001, -2, 2);
+	ResiduiZ.push_back(istogrammaZ);
+}
+std::map<int, TH1D*> MappaResiduiZ;
+for (int i = 0; i<ResiduiZ.size(); i++)
+{
+	MappaResiduiZ.insert(std::make_pair(stringa[i],ResiduiZ[i]));	
+}
+
 TString Title;
 std::vector<TH1D*> Residui;
 for (int i = 0; i < 10; ++i) 
@@ -58,12 +72,13 @@ for (int i = 0; i < 10; ++i)
 	TH1D* istogramma = new TH1D(Form("residui_%d", stringa[i]), Title, 2001, -2, 2);
 	Residui.push_back(istogramma);
 }
-
 std::map<int, TH1D*> MappaResidui;
 for (int i = 0; i<Residui.size(); i++)
 {
 	MappaResidui.insert(std::make_pair(stringa[i],Residui[i]));	
 }
+
+
 
 
 std::vector<TCanvas*> CanvasVector;
@@ -99,12 +114,12 @@ double mx,qx,my,qy;
 //std::vector<double> mx;
 //std::vector<double> my;
 double chi2X, chi2AttX, chi2Y, chi2AttY;
-double res;
+double res, resZ;
 
 for(int i= 0; i< entries; i++)
 {
 	tree->GetEntry(i);
-	if((evento.Flags[0] == 1)&(evento.Flags[1] == 1))
+	if((evento.Flags[0] == 1)&(evento.Flags[1] == 1)&(evento.Flags[2] == 1))
 	{
 		N++;	
 	//    if(i == 3){
@@ -184,7 +199,7 @@ for(int i= 0; i< entries; i++)
 	 		
 	 		
 	 		//if(chi2X/chi2AttX>100){cout<<i<<endl;}
-	 		
+	 		if(chi2AttX==2){
 			for(auto ii:stringa) //ciclo for per ogni layer
 	 		{
 
@@ -194,12 +209,20 @@ for(int i= 0; i< entries; i++)
 					{
 						if(ii<15)
 						{
-							res =  LayerCoordinate(ii)- (evento.ClusterPosizione[jj] - qx)/mx;
+							resZ =  LayerCoordinate(ii)- (evento.ClusterPosizione[jj] - qx)/mx;
+							MappaResiduiZ[ii]->Fill(resZ);
+							res =  evento.ClusterPosizione[jj] - lineX->Eval(LayerCoordinate(ii));
 							MappaResidui[ii]->Fill(res);
+							//if((ii==X4)&(res>0.02)&(res<0.06))
+							//{
+							//	cout<<i<<endl;
+							//}
 	 					}
 						if(ii>15)
 						{
-							res =  LayerCoordinate(ii)- (evento.ClusterPosizione[jj] - qy)/my;
+							resZ =  LayerCoordinate(ii)- (evento.ClusterPosizione[jj] - qy)/my;
+							MappaResiduiZ[ii]->Fill(resZ);
+							res =  evento.ClusterPosizione[jj] - lineY->Eval(LayerCoordinate(ii));
 							MappaResidui[ii]->Fill(res);
 	 					}
 	 				}
@@ -207,10 +230,11 @@ for(int i= 0; i< entries; i++)
 	 		}
 //		}
 	}
+	}
 }
 cout<<"Eventi che soddisfano i flag "<<N<<endl;
 TString TitleFile;
-
+/*
 TCanvas *c1 = new TCanvas();
 hist->Draw();
 
@@ -247,11 +271,11 @@ histChi2Y->Draw();
 
 TCanvas *c11 = new TCanvas();
 histChi3Y->Draw();
-
+*/
 
 for(int i =0; i<10; i++)
 {
-	TitleFile = "Grafici/Residui/Layer" + mapping[stringa[i]] + "Shift.png";
+	TitleFile = "Grafici/Residui/ZLayer" + mapping[stringa[i]] + "Shift.png";
 	CanvasVector[i]->cd();
 	Residui[i]->Draw();
 	//CanvasVector[i]->SaveAs(TitleFile);

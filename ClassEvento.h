@@ -19,7 +19,7 @@ public:
 	std::vector<int> InitialStrip;
 	std::vector<int> ClusterLayer;
 	std::vector<double> ClusterPosizione;
-	int Flags[2] = {0,0};
+	int Flags[3] = {0,0,0};
 };
 
 
@@ -57,14 +57,18 @@ return coordinate;};
 double Error(int StripIn, int Dimension){
 	int StripFin = StripIn + Dimension;
 	double error = (StripCoordinate(StripFin)-StripCoordinate(StripIn))/(sqrt(12.));
+	if(Dimension==1)
+	{
+		error = 0.0228/sqrt(12.);
+	}
 	return error; 
 }
 
 
 double LayerCoordinate(int numero)
 {
-//ouble shift[10] = {-0.151,0.244,-0.242,0.138,0.023,0.073,-0.197,0.165,-0.189,0.177};
-double shift[10] = {0.};
+double shift[10] = {-0.151,0.244,-0.242,0.138,0.023,0.073,-0.197,0.165,-0.189,0.177};
+//double shift[10] = {0.};
 
 //double shift2[10] = {-0.001, 0.027, -0.032, -0.003, 0.025, 0.003, -0.024, 0.013, 0.050, -0.051};
 double shift2[10] = {0.};
