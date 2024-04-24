@@ -44,15 +44,17 @@ public:
 
 
 
-
-
-
 double StripCoordinate(int Strip){
 	const double StripPitch = 0.0228; //cm
 	const double EdgeWidth = 0.1; //cm
 	const double LadderSeparation = 0.02; //cm
 	double coordinate = EdgeWidth + StripPitch*int(Strip) + (LadderSeparation + 2*EdgeWidth - StripPitch)*int(Strip/384); //formula sbagliata: non funziona...
 return coordinate;};
+
+double ClusterCoordinate(Evento e, int indice, int layer, double shift[10] = {0.}){
+	return e.ClusterPosizione[indice] - shift[layer];
+}
+
 
 double Error(int StripIn, int Dimension){
 	int StripFin = StripIn + Dimension;
@@ -67,27 +69,42 @@ double Error(int StripIn, int Dimension){
 
 double LayerCoordinate(int numero)
 {
-double shift[10] = {-0.151,0.244,-0.242,0.138,0.023,0.073,-0.197,0.165,-0.189,0.177};
-//double shift[10] = {0.};
-
-//double shift2[10] = {-0.001, 0.027, -0.032, -0.003, 0.025, 0.003, -0.024, 0.013, 0.050, -0.051};
-double shift2[10] = {0.};
+//double shift[10] = {-0.151,0.244,-0.242,0.138,0.023,0.073,-0.197,0.165,-0.189,0.177};
+double shift[10] = {0.};
 
 std::map<int, double> Zmap;
-Zmap.insert(std::make_pair(10, 3.1 - shift[0] - shift2[0]));
-Zmap.insert(std::make_pair(11, 6.3 - shift[1] - shift2[1]));
-Zmap.insert(std::make_pair(12,16.9 - shift[2] - shift2[2]));
-Zmap.insert(std::make_pair(13,20.1 - shift[3] - shift2[3]));
-Zmap.insert(std::make_pair(14,31.2 - shift[4] - shift2[4]));
-Zmap.insert(std::make_pair(20,-1.0 - shift[5] - shift2[5]));
-Zmap.insert(std::make_pair(21,10.1 - shift[6] - shift2[6]));
-Zmap.insert(std::make_pair(22,13.3 - shift[7] - shift2[7]));
-Zmap.insert(std::make_pair(23,24.6 - shift[8] - shift2[8]));
-Zmap.insert(std::make_pair(24,27.8 - shift[9] - shift2[9]));
+Zmap.insert(std::make_pair(10, 3.1 - shift[0]));
+Zmap.insert(std::make_pair(11, 6.3 - shift[1]));
+Zmap.insert(std::make_pair(12,16.9 - shift[2]));
+Zmap.insert(std::make_pair(13,20.1 - shift[3]));
+Zmap.insert(std::make_pair(14,31.2 - shift[4]));
+Zmap.insert(std::make_pair(20,-1.0 - shift[5]));
+Zmap.insert(std::make_pair(21,10.1 - shift[6]));
+Zmap.insert(std::make_pair(22,13.3 - shift[7]));
+Zmap.insert(std::make_pair(23,24.6 - shift[8]));
+Zmap.insert(std::make_pair(24,27.8 - shift[9]));
 
 double posizione = Zmap[numero];
 return posizione;
 }
+
+
+int IndiceVettore(std::vector<int> vettore, int numero)
+{
+	int indice;
+    // Cerca il numero nel vettore
+    auto trovato = std::find(vettore.begin(), vettore.end(), numero);
+    // Verifica se il numero è stato trovato
+    if (trovato != vettore.end()) 
+    {
+		indice = std::distance(vettore.begin(), trovato);
+    } else 
+    {
+		indice = -1;
+    }
+    return indice;
+}
+
 
 
 
@@ -135,7 +152,7 @@ for (int i = 0; i<e.ClusterLayer.size(); i++){
 }
 }
 
-void TrackFitXZ(Evento e, TGraphErrors *Graph){ //inverte gli assi
+void TrackFitXZ(Evento e, TGraphErrors *Graph, int layerveto = -1, double shift[10] = {0.}){ //inverte gli assi
 
 double xpos;
 double zpos;
@@ -143,10 +160,10 @@ double error;
 double errorz = 0.; //cm
 int n = 0;
 Graph->SetTitle("Track XZ; Z [cm]; X [cm]");
-for (int i = 0; i<e.ClusterLayer.size(); i++){
-	if(e.ClusterLayer[i]<15)
+for (int i = 0; i<e.ClusterLayer.size(); i++){ 
+	if((e.ClusterLayer[i]<15)&(e.ClusterLayer[i]!= layerveto))
 	{
-		xpos = e.ClusterPosizione[i];
+		xpos = ClusterCoordinate(e, i, e.ClusterLayer[i], shift);
 		zpos = LayerCoordinate(e.ClusterLayer[i]);
 		n = Graph->GetN();
 		error = Error(e.InitialStrip[i], e.ClusterDimension[i]);
@@ -157,7 +174,7 @@ for (int i = 0; i<e.ClusterLayer.size(); i++){
 }
 }
 
-void TrackFitYZ(Evento e, TGraphErrors *Graph){ //inverte gli assi
+void TrackFitYZ(Evento e, TGraphErrors *Graph, int layerveto = -1, double shift[10] = {0.}){ //inverte gli assi
 
 double ypos;
 double zpos;
@@ -166,9 +183,9 @@ double errorz = 0.; //cm
 int n = 0;
 Graph->SetTitle("Track YZ; Z [cm]; Y [cm]");
 for (int i = 0; i<e.ClusterLayer.size(); i++){
-	if(e.ClusterLayer[i]>15)
+	if((e.ClusterLayer[i]>15)&(e.ClusterLayer[i]!= layerveto))
 	{
-		ypos = e.ClusterPosizione[i];
+		ypos = ClusterCoordinate(e, i, e.ClusterLayer[i], shift);
 		zpos = LayerCoordinate(e.ClusterLayer[i]);
 		n = Graph->GetN();
 		error = Error(e.InitialStrip[i], e.ClusterDimension[i]);

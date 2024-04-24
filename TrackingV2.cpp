@@ -6,7 +6,7 @@
 #include <fstream>
 #include <sstream>
 #include <iterator>
-void Tracking(const std::string file){
+void TrackingV2(const std::string file){
 
  int X0 = 10;
  int X1 = 11;   
@@ -55,7 +55,7 @@ TString TitleZ;
 std::vector<TH1D*> ResiduiZ;
 for (int i = 0; i < 10; ++i) 
 {
-	TitleZ ="Residui Layer" + mapping[stringa[i]]+"asse Z con shift";
+	TitleZ ="Residui Layer" + mapping[stringa[i]]+"asse Z";
 	TH1D* istogrammaZ = new TH1D(Form("residuiZ_%d", stringa[i]), TitleZ, 2001, -2, 2);
 	ResiduiZ.push_back(istogrammaZ);
 }
@@ -69,7 +69,7 @@ TString Title;
 std::vector<TH1D*> Residui;
 for (int i = 0; i < 10; ++i) 
 {
-	Title ="Residui Layer" + mapping[stringa[i]]+" con shift";
+	Title ="Residui Layer" + mapping[stringa[i]]+" ";
 	TH1D* istogramma = new TH1D(Form("residui_%d", stringa[i]), Title, 2001, -2, 2);
 	Residui.push_back(istogramma);
 }
@@ -115,30 +115,29 @@ double mx,qx,my,qy;
 double chi2X, chi2AttX, chi2Y, chi2AttY;
 double res, resZ;
 int indice;
+int shift;
 
 for(int i= 0; i< entries; i++)
 {
 	tree->GetEntry(i);
 	if((evento.Flags[0] == 1)&(evento.Flags[1] == 1))
 	{
+	for (auto ii:stringa)
+	{
+		shift = 0;
 		N++;	
 			TGraphErrors *XZ = new TGraphErrors();
 			TGraphErrors *YZ = new TGraphErrors();
 		
-			TrackFitXZ(evento, XZ);
-			TrackFitYZ(evento, YZ);
+			TrackFitXZ(evento, XZ, ii);
+			TrackFitYZ(evento, YZ, ii);
 			
-			
+		
 			XZ->Fit("lineX","qEX0");
 			mx = lineX->GetParameter(1);
 			qx = lineX->GetParameter(0);
 			chi2X = lineX->GetChisquare();
 			chi2AttX = XZ->GetN() - 2;
-
-			
-			//TFitResultPtr fitResultX = XZ->Fit("lineX", "S");
-			//cout<<fitResultX<<endl;
-	
 			
 			YZ->Fit("lineY","qEX0");
 			my = lineY->GetParameter(1);
@@ -147,132 +146,38 @@ for(int i= 0; i< entries; i++)
 			chi2AttY = YZ->GetN() - 2;
 
 			
-			//TFitResultPtr fitResultY = YZ->Fit("lineY", "S");
-			//cout<<fitResultY<<endl;
-		/*	if(chi2AttX==0)
-			{
-				//cout<<i<<endl;
-				//cout<<XZ->GetN()<<endl;
-				cout<<"traccia con due punti "<<evento.NEventi<<endl;
-			}
-		*/	
-			if((chi2AttX>=1)&(chi2AttY>=1))
-			{	
-				hist->Fill(chi2X/chi2AttX);	
-				histx->Fill(chi2X/chi2AttX);
-				hist->Fill(chi2Y/chi2AttY);	
-				histy->Fill(chi2Y/chi2AttY);
-				//hist2->Fill(chi2AttX);
-				//histx2->Fill(chi2AttX);
-				//hist2->Fill(chi2AttY);
-				//histy2->Fill(chi2AttY);
-	 		}
-	 		
-	 		if((chi2AttX==1)&(chi2AttY>=1))
+	 		for(int jj =0; jj<evento.ClusterLayer.size();jj++) //ciclo for per ogni layer del cluster
 	 		{
-	 			histChi1X->Fill(chi2X);
-	 		}
-	 		if((chi2AttX==2)&(chi2AttY>=1))
-	 		{
-	 			histChi2X->Fill(chi2X);
-	 		}
-	 		if((chi2AttX==3)&(chi2AttY>=1))
-	 		{
-	 			histChi3X->Fill(chi2X);
-	 		}
-	 		
-	 		if((chi2AttY==1)&(chi2AttX>=1))
-	 		{
-	 			histChi1Y->Fill(chi2Y);
-	 		}
-	 		if((chi2AttY==2)&(chi2AttX>=1))
-	 		{
-	 			histChi2Y->Fill(chi2Y);
-	 		}
-	 		if((chi2AttY==3)&(chi2AttX>=1))
-	 		{
-	 			histChi3Y->Fill(chi2Y);
-	 		}
-	 		
-	 		
-	 		//if(chi2X/chi2AttX>100){cout<<i<<endl;}
-	 		//if(chi2AttX>=1){
-			for(auto ii:stringa) //ciclo for per ogni layer
-	 		{
-
-	 			for(int jj =0; jj<evento.ClusterLayer.size();jj++) //ciclo for per ogni layer del cluster
-	 			{
-					if(ii == evento.ClusterLayer[jj])
+				if(ii == evento.ClusterLayer[jj])
+				{
+					if(ii<15)
 					{
-						if(ii<15)
-						{
-							resZ =  LayerCoordinate(ii)- (evento.ClusterPosizione[jj] - qx)/mx;
-							MappaResiduiZ[ii]->Fill(resZ);
-							res =  evento.ClusterPosizione[jj] - lineX->Eval(LayerCoordinate(ii));
-							MappaResidui[ii]->Fill(res);
-							//if((ii==X4)&(res>0.02)&(res<0.06))
-							//{
-							//	cout<<i<<endl;
-							//}
-	 					}
-						if(ii>15)
-						{
-							resZ =  LayerCoordinate(ii)- (evento.ClusterPosizione[jj] - qy)/my;
-							MappaResiduiZ[ii]->Fill(resZ);
-							res =  evento.ClusterPosizione[jj] - lineY->Eval(LayerCoordinate(ii));
-							MappaResidui[ii]->Fill(res);
-	 					}
-						indice = IndiceVettore(evento.ClusterLayer, 24);
-	 					if((ii == 14)&(indice>=0))
-	 					{
-	 						hist2d->Fill(evento.ClusterPosizione[indice], res);
-	 					}
+						resZ =  LayerCoordinate(ii)- (evento.ClusterPosizione[jj] - qx)/mx;
+						MappaResiduiZ[ii]->Fill(resZ);
+						res =  evento.ClusterPosizione[jj] - lineX->Eval(LayerCoordinate(ii));
+						MappaResidui[ii]->Fill(res);
+	 				}
+					if(ii>15)
+					{
+						resZ =  LayerCoordinate(ii)- (evento.ClusterPosizione[jj] - qy)/my;
+						MappaResiduiZ[ii]->Fill(resZ);
+						res =  evento.ClusterPosizione[jj] - lineY->Eval(LayerCoordinate(ii));
+						MappaResidui[ii]->Fill(res);
+	 				}
+					indice = IndiceVettore(evento.ClusterLayer, 24);
+	 				if((ii == 14)&(indice>=0))
+	 				{
+	 					hist2d->Fill(evento.ClusterPosizione[indice], res);
 	 				}
 	 			}
 	 		}
+	 	}
 	}
 	}
 
 cout<<"Eventi che soddisfano i flag "<<N<<endl;
 TString TitleFile;
-/*
-TCanvas *c1 = new TCanvas();
-hist->Draw();
 
-//TCanvas *c2 = new TCanvas();
-//hist2->Draw();
-
-TCanvas *c3 = new TCanvas();
-histx->Draw();
-
-//TCanvas *c4 = new TCanvas();
-//histx2->Draw();
-
-TCanvas *c5 = new TCanvas();
-histy->Draw();
-
-//TCanvas *c6 = new TCanvas();
-//histy2->Draw();
-
-
-TCanvas *c6 = new TCanvas();
-histChi1X->Draw();
-
-TCanvas *c7 = new TCanvas();
-histChi2X->Draw();
-
-TCanvas *c8 = new TCanvas();
-histChi3X->Draw();
-
-TCanvas *c9 = new TCanvas();
-histChi1Y->Draw();
-
-TCanvas *c10 = new TCanvas();
-histChi2Y->Draw();
-
-TCanvas *c11 = new TCanvas();
-histChi3Y->Draw();
-*/
 
 for(int i =0; i<10; i++)
 {
